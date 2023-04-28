@@ -61,7 +61,6 @@
             android:layout_toStartOf="@id/btn_call"
             android:background="@drawable/round_button"
             android:contentDescription="@string/switch_camera"
-            android:onClick="onSwitchCameraClicked"
             android:src="@drawable/ic_baseline_cameraswitch_24" />
 
         <ImageButton
@@ -71,7 +70,6 @@
             android:layout_centerVertical="true"
             android:background="@drawable/round_button_red"
             android:contentDescription="@string/end_call"
-            android:onClick="onCallClicked"
             android:src="@drawable/ic_baseline_call_end_24" />
 
         <ImageButton
@@ -83,7 +81,6 @@
             android:layout_toEndOf="@id/btn_call"
             android:background="@drawable/round_button"
             android:contentDescription="@string/mute"
-            android:onClick="onLocalAudioMuteClicked"
             android:src="@drawable/ic_baseline_mic_24" />
 
         <ImageButton
