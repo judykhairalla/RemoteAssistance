@@ -8,10 +8,10 @@ import android.os.Bundle;
 import android.view.SurfaceView;
 import android.view.View;
 import android.widget.FrameLayout;
+import android.widget.ImageButton;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
 
 import io.agora.rtc2.ChannelMediaOptions;
 import io.agora.rtc2.Constants;
@@ -27,15 +27,21 @@ public class ClientActivity extends AppCompatActivity {
     //SurfaceView to render local video in a Container.
     private SurfaceView localSurfaceView;
 
+    private ImageButton mMuteBtn;
+    private boolean isMuted = false;
+
     private RtcEngine agoraEngine;
     private AppCompatActivity context;
     private boolean isJoined = false;
 
+
+    //********** ACTIVITY METHODS **********//
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_client);
         context = this;
+        initUI();
         setupVideoSDKEngine();
         joinChannel();
     }
@@ -125,6 +131,7 @@ public class ClientActivity extends AppCompatActivity {
             // Join the channel with a temp token.
             // You need to specify the user ID yourself, and ensure that it is unique in the channel.
             agoraEngine.joinChannel(token, channelName, uid, options);
+            isJoined = true;
         } else {
             Toast.makeText(getApplicationContext(), "Permissions was not granted", Toast.LENGTH_SHORT).show();
         }
@@ -142,6 +149,18 @@ public class ClientActivity extends AppCompatActivity {
             if (localSurfaceView != null) localSurfaceView.setVisibility(View.GONE);
             isJoined = false;
         }
+    }
+
+    //********** CONTROL PANEL METHODS **********//
+    public void initUI(){
+        mMuteBtn = findViewById(R.id.btn_mute);
+    }
+
+    // TODO: fix mute button
+    public void onLocalAudioMuteClicked(View view) {
+        isMuted = !isMuted;
+        agoraEngine.muteLocalAudioStream(isMuted);
+        mMuteBtn.setImageResource(isMuted ? R.drawable.ic_baseline_mic_off_24 : R.drawable.ic_baseline_mic_24);
     }
 
 }
