@@ -4,9 +4,18 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/light_blue">
+    android:background="@color/light_blue"
+    tools:context = ".ClientActivity">
+
+    <android.opengl.GLSurfaceView
+        android:id="@+id/local_surface_view"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
     <FrameLayout
+        android:id="@+id/remote_video_view"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginTop="16dp"
@@ -19,7 +28,7 @@
         app:layout_constraintTop_toTopOf="parent">
 
         <ImageView
-            android:id="@+id/imageView"
+            android:id="@+id/icon_logo"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
@@ -47,7 +56,7 @@
             android:layout_toStartOf="@id/btn_call"
             android:background="@drawable/round_button"
             android:contentDescription="@string/mute"
-            android:onClick="onLocalAudioMuteClicked"
+
             android:src="@drawable/ic_baseline_mic_24" />
 
         <ImageButton
@@ -57,7 +66,7 @@
             android:layout_centerVertical="true"
             android:background="@drawable/round_button_red"
             android:contentDescription="@string/end_call"
-            android:onClick="onCallClicked"
+
             android:src="@drawable/ic_baseline_call_end_24" />
 
         <ImageButton
@@ -69,7 +78,7 @@
             android:layout_toEndOf="@id/btn_call"
             android:background="@drawable/round_button"
             android:contentDescription="@string/show_point_cloud"
-            android:onClick="onShowPointCloudClicked"
+
             android:src="@drawable/ic_baseline_visibility_24" />
 
     </androidx.appcompat.widget.LinearLayoutCompat>

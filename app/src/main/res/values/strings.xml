@@ -8,4 +8,7 @@
     <string name="add">add</string>
     <string name="logo">logo</string>
     <string name="show_point_cloud">show point cloud</string>
+    <string name="join">Join</string>
+    <string name="request_assistance">Request assistance</string>
+    <string name="provide_assistance">Provide Assistance</string>
 </resources>

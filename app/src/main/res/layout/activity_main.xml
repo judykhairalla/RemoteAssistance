@@ -6,13 +6,40 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Hello World!"
-        app:layout_constraintBottom_toBottomOf="parent"
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
+        android:gravity="center"
+        android:orientation="vertical"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent">
 
+        <RadioGroup
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:checkedButton="@id/request_assistance">
+
+            <RadioButton
+                android:id="@+id/request_assistance"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/request_assistance" />
+
+            <RadioButton
+                android:id="@+id/provide_assistance"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/provide_assistance" />
+        </RadioGroup>
+
+        <Button
+            android:id="@+id/join"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/join" />
+    </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>
