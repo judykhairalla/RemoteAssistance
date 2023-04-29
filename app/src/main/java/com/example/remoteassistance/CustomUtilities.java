@@ -5,7 +5,11 @@ import android.content.pm.PackageManager;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public final class CustomUtilities {
 
@@ -13,9 +17,11 @@ public final class CustomUtilities {
     public static final int PERMISSION_REQ_ID = 22;
     public static final String[] REQUESTED_PERMISSIONS =
             {
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE,
                     android.Manifest.permission.RECORD_AUDIO,
                     Manifest.permission.CAMERA
             };
+    public static final int PERMISSION_REQUEST_CODE = 0X0001;
 
     // Fill the App ID of your project generated on Agora Console.
     public static final String appId = "";
@@ -26,16 +32,22 @@ public final class CustomUtilities {
     // An integer that identifies the local user.
     public static final int uid = 0;
 
-    //********** CONSTANTS **********//
-    public static final String CHANNEL_NAME = "channel_name";
-    public static final String TOKEN = "token";
-
-
     //********** UTILITY METHODS **********//
     public static boolean checkSelfPermission(AppCompatActivity appCompatActivity)
     {
-        return ContextCompat.checkSelfPermission(appCompatActivity, REQUESTED_PERMISSIONS[0]) == PackageManager.PERMISSION_GRANTED &&
-                ContextCompat.checkSelfPermission(appCompatActivity, REQUESTED_PERMISSIONS[1]) == PackageManager.PERMISSION_GRANTED;
+        List<String> needList = new ArrayList<>();
+        for (String perm : REQUESTED_PERMISSIONS) {
+            if (ContextCompat.checkSelfPermission(appCompatActivity, perm) != PackageManager.PERMISSION_GRANTED) {
+                needList.add(perm);
+            }
+        }
+
+        if (!needList.isEmpty()) {
+            ActivityCompat.requestPermissions(appCompatActivity, needList.toArray(new String[needList.size()]), PERMISSION_REQUEST_CODE);
+            return false;
+        }
+
+        return true;
     }
 
     public static void showMessage(AppCompatActivity appCompatActivity, String message) {

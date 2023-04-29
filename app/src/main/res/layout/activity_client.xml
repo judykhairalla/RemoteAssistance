@@ -7,7 +7,7 @@
     android:background="@color/light_blue"
     tools:context = ".ClientActivity">
 
-    <FrameLayout
+    <android.opengl.GLSurfaceView
         android:id="@+id/local_video_view_container"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
@@ -82,7 +82,7 @@
             android:background="@drawable/round_button"
             android:contentDescription="@string/show_point_cloud"
 
-            android:src="@drawable/ic_baseline_visibility_24" />
+            android:src="@drawable/ic_baseline_visibility_off_24" />
 
     </androidx.appcompat.widget.LinearLayoutCompat>
 
