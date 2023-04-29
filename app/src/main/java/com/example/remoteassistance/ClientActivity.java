@@ -11,6 +11,7 @@ import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
+import android.os.SystemClock;
 import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
@@ -40,8 +41,10 @@ import com.google.android.material.snackbar.Snackbar;
 import com.google.ar.core.ArCoreApk;
 import com.google.ar.core.Camera;
 import com.google.ar.core.Config;
+import com.google.ar.core.DepthPoint;
 import com.google.ar.core.Frame;
 import com.google.ar.core.HitResult;
+import com.google.ar.core.InstantPlacementPoint;
 import com.google.ar.core.Plane;
 import com.google.ar.core.Point;
 import com.google.ar.core.PointCloud;
@@ -106,11 +109,20 @@ public class ClientActivity extends AppCompatActivity implements GLSurfaceView.R
     private final ArrayBlockingQueue<MotionEvent> queuedSingleTaps = new ArrayBlockingQueue<>(16);
     private final ArrayBlockingQueue<ArrayList> queuedSentTaps = new ArrayBlockingQueue<>(16);
     private final ArrayList<VirtualObject> virtualObjects = new ArrayList<>();
-    private float mScaleFactor = 0.05f;
 
+    private float mScaleFactor = 0.05f;
     private boolean mHidePoint;
     private boolean mHidePlane;
     private int mWidth, mHeight;
+
+    // Assumed distance from the device camera to the surface on which user will try to place objects.
+    // This value affects the apparent scale of objects while the tracking method of the
+    // Instant Placement point is SCREENSPACE_WITH_APPROXIMATE_DISTANCE.
+    // Values in the [0.2, 2.0] meter range are a good choice for most AR experiences. Use lower
+    // values for AR experiences where users are expected to place objects on surfaces close to the
+    // camera. Use larger values for experiences where the user will likely be standing and trying to
+    // place an object on the ground or floor in front of them.
+    private static final float APPROXIMATE_DISTANCE_METERS = 2.0f;
 
     //********** ACTIVITY METHODS **********//
     @Override
@@ -273,6 +285,7 @@ public class ClientActivity extends AppCompatActivity implements GLSurfaceView.R
         public void onStreamMessage(int uid, int streamId, byte[] data) {
             //when received the remote user's stream message data
             super.onStreamMessage(uid, streamId, data);
+            CustomUtilities.showMessage(context, "GOTYOURMESSAGE");
             int touchCount = data.length / 12;       //number of touch points from data array
             for (int k = 0; k < touchCount; k++) {
                 //get the touch point's x,y position related to the center of the screen and calculated the raw position
@@ -303,6 +316,7 @@ public class ClientActivity extends AppCompatActivity implements GLSurfaceView.R
                 arr.add(center_X);
                 arr.add(center_Y);
                 queuedSentTaps.offer(arr);
+
             }
         }
     };
@@ -423,14 +437,16 @@ public class ClientActivity extends AppCompatActivity implements GLSurfaceView.R
             // camera framerate.
             Frame frame = mSession.update();
             Camera camera = frame.getCamera();
-            ArrayList tap = queuedSentTaps.poll();
-            if (tap != null && camera.getTrackingState() == TrackingState.TRACKING) {
-                Log.d(TAG, "onDrawFrame: RECEIVED");
-                for (HitResult hit : frame.hitTest(tap.indexOf(0), tap.indexOf(1))) {
+            ArrayList sentTap = queuedSentTaps.poll();
+            if (sentTap != null && camera.getTrackingState() == TrackingState.TRACKING) {
+                MotionEvent tap = MotionEvent.obtain(SystemClock.uptimeMillis(), SystemClock.uptimeMillis(), MotionEvent.ACTION_DOWN, sentTap.indexOf(0), sentTap.indexOf(1), 0);
+                for (HitResult hit : frame.hitTest(tap)) {
                     // Check if any plane was hit, and if it was hit inside the plane polygon
                     Trackable trackable = hit.getTrackable();
                     // Creates an anchor if a plane or an oriented point was hit.
-                    if ((trackable instanceof Plane && ((Plane) trackable).isPoseInPolygon(hit.getHitPose()))
+                    if ((trackable instanceof Plane
+                            && ((Plane) trackable).isPoseInPolygon(hit.getHitPose())
+                            && (PlaneRenderer.calculateDistanceToPlane(hit.getHitPose(), camera.getPose()) > 0))
                             || (trackable instanceof Point
                             && ((Point) trackable).getOrientationMode()
                             == Point.OrientationMode.ESTIMATED_SURFACE_NORMAL)) {

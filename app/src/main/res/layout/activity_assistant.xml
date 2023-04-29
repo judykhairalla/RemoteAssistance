@@ -12,7 +12,15 @@
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent">
+        <ImageView
+            android:id="@+id/imageView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:contentDescription="@string/logo"
+            app:srcCompat="@drawable/ic_launcher_foreground" />
+    </FrameLayout>
 
     <FrameLayout
         android:id="@+id/local_video_view_container"
@@ -28,7 +36,6 @@
         app:layout_constraintTop_toTopOf="parent">
 
         <ImageView
-            android:id="@+id/imageView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
@@ -67,6 +74,7 @@
             android:layout_toStartOf="@id/btn_call"
             android:background="@drawable/round_button"
             android:contentDescription="@string/switch_camera"
+            android:onClick="onSwitchCameraClicked"
             android:src="@drawable/ic_baseline_cameraswitch_24" />
 
         <ImageButton
@@ -87,6 +95,7 @@
             android:layout_toEndOf="@id/btn_call"
             android:background="@drawable/round_button"
             android:contentDescription="@string/mute"
+            android:onClick="onLocalAudioMuteClicked"
             android:src="@drawable/ic_baseline_mic_24" />
 
         <ImageButton

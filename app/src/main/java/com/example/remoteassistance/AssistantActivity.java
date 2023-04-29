@@ -4,14 +4,23 @@ import static com.example.remoteassistance.CustomUtilities.channelName;
 import static com.example.remoteassistance.CustomUtilities.token;
 import static com.example.remoteassistance.CustomUtilities.uid;
 
+import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.MotionEvent;
 import android.view.SurfaceView;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.Toast;
 
+import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
+
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.List;
 
 import io.agora.rtc2.ChannelMediaOptions;
 import io.agora.rtc2.Constants;
@@ -22,18 +31,26 @@ import io.agora.rtc2.video.VideoCanvas;
 
 
 public class AssistantActivity extends AppCompatActivity {
-    //SurfaceView to render Remote video in a Container.
+    private static final String TAG = AssistantActivity.class.getSimpleName();
+
+    //********** UI VARIABLES **********//
     private SurfaceView remoteSurfaceView;
-    //SurfaceView to render local video in a Container.
     private SurfaceView localSurfaceView;
-
     private ImageButton mMuteBtn;
-    private boolean isMuted = false;
 
+    //********** AGORA VARIABLES **********//
     private RtcEngine agoraEngine;
     private AppCompatActivity context;
     private boolean isJoined = false;
+    private boolean isMuted = false;
 
+    //********** AR VARIABLES **********//
+    private int touchCount = 0;
+    private float mScaleFactor = 0.03f;
+    private int mObjectChoice = 0;
+    int dataChannel;
+    int mWidth, mHeight;
+    private List<Float> floatList = new ArrayList<>();
 
     //********** ACTIVITY METHODS **********//
     @Override
@@ -56,6 +73,26 @@ public class AssistantActivity extends AppCompatActivity {
             RtcEngine.destroy();
             agoraEngine = null;
         }).start();
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] results) {
+        super.onRequestPermissionsResult(requestCode, permissions, results);
+        if (requestCode == CustomUtilities.PERMISSION_REQUEST_CODE) {
+            int deniedCount = 0;
+
+            for (int i = 0; i < results.length; i++) {
+                if (results[i] == PackageManager.PERMISSION_DENIED) {
+                    deniedCount++;
+                }
+            }
+
+            if (deniedCount == 0) {
+                setupVideoSDKEngine();
+            } else {
+                finish();
+            }
+        }
     }
 
     //********** AGORA CHANNELS INITIALIZATION **********//
@@ -103,6 +140,7 @@ public class AssistantActivity extends AppCompatActivity {
         agoraEngine.setupRemoteVideo(new VideoCanvas(remoteSurfaceView, VideoCanvas.RENDER_MODE_FIT, uid));
         // Display RemoteSurfaceView.
         remoteSurfaceView.setVisibility(View.VISIBLE);
+        initTouchListener();
     }
 
     private void setupLocalVideo() {
@@ -131,6 +169,7 @@ public class AssistantActivity extends AppCompatActivity {
             // Join the channel with a temp token.
             // You need to specify the user ID yourself, and ensure that it is unique in the channel.
             agoraEngine.joinChannel(token, channelName, uid, options);
+            dataChannel = agoraEngine.createDataStream(false, false);
             isJoined = true;
         } else {
             Toast.makeText(getApplicationContext(), "Permissions was not granted", Toast.LENGTH_SHORT).show();
@@ -151,9 +190,63 @@ public class AssistantActivity extends AppCompatActivity {
         }
     }
 
+    private void sendMessage(int touchCount, List<Float> floatList) {
+        byte[] motionByteArray = new byte[floatList.size() * 4 ];
+        for (int i = 0; i < floatList.size(); i++) {
+            byte[] curr = ByteBuffer.allocate(4).putFloat(floatList.get(i)).array();
+            for (int j = 0; j < 4; j++) {
+                motionByteArray[i * 4 + j] = curr[j];
+            }
+        }
+        agoraEngine.sendStreamMessage(dataChannel, motionByteArray);
+    }
+
     //********** CONTROL PANEL METHODS **********//
     public void initUI(){
+        this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
+
+        ActionBar ab = getSupportActionBar();
+        setContentView(R.layout.activity_assistant);
+        if (ab != null) {
+            ab.hide();
+        }
+
         mMuteBtn = findViewById(R.id.btn_mute);
+        //get device screen size
+        mWidth= this.getResources().getDisplayMetrics().widthPixels;
+        mHeight= this.getResources().getDisplayMetrics().heightPixels;
+    }
+
+    public void initTouchListener(){
+        remoteSurfaceView.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                switch (event.getAction()) {
+                    case MotionEvent.ACTION_UP:
+                    case MotionEvent.ACTION_MOVE:
+                    case MotionEvent.ACTION_DOWN:
+                        //get the touch position related to the center of the screen
+                        touchCount++;
+                        float x = event.getRawX() - ((float)mWidth / 2);
+                        float y = event.getRawY() - ((float)mHeight / 2);
+                        floatList.add(x);
+                        floatList.add(y);
+                        floatList.add(mObjectChoice + mScaleFactor);
+                        sendMessage(touchCount, floatList);
+                        touchCount = 0;
+                        floatList.clear();
+                        break;
+                    default:
+                        break;
+                }
+                return true;
+            }
+
+        });
+    }
+
+    public void onSwitchCameraClicked(View view) {
+        agoraEngine.switchCamera();
     }
 
     // TODO: fix mute button

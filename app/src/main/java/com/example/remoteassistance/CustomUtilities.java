@@ -17,7 +17,6 @@ public final class CustomUtilities {
     public static final int PERMISSION_REQ_ID = 22;
     public static final String[] REQUESTED_PERMISSIONS =
             {
-                    Manifest.permission.WRITE_EXTERNAL_STORAGE,
                     android.Manifest.permission.RECORD_AUDIO,
                     Manifest.permission.CAMERA
             };
