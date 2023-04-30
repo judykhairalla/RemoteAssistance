@@ -227,8 +227,8 @@ public class AssistantActivity extends AppCompatActivity {
                     case MotionEvent.ACTION_DOWN:
                         //get the touch position related to the center of the screen
                         touchCount++;
-                        float x = event.getRawX() - ((float)mWidth / 2);
-                        float y = event.getRawY() - ((float)mHeight / 2);
+                        float x = event.getX();
+                        float y = event.getY();
                         floatList.add(x);
                         floatList.add(y);
                         floatList.add(mObjectChoice + mScaleFactor);

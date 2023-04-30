@@ -107,7 +107,7 @@ public class ClientActivity extends AppCompatActivity implements GLSurfaceView.R
     private ObjectRenderer arrowClockwiseRenderer = new ObjectRenderer();
 
     private final ArrayBlockingQueue<MotionEvent> queuedSingleTaps = new ArrayBlockingQueue<>(16);
-    private final ArrayBlockingQueue<ArrayList> queuedSentTaps = new ArrayBlockingQueue<>(16);
+    private final ArrayBlockingQueue<Float[]> queuedSentTaps = new ArrayBlockingQueue<>(16);
     private final ArrayList<VirtualObject> virtualObjects = new ArrayList<>();
 
     private float mScaleFactor = 0.05f;
@@ -285,7 +285,6 @@ public class ClientActivity extends AppCompatActivity implements GLSurfaceView.R
         public void onStreamMessage(int uid, int streamId, byte[] data) {
             //when received the remote user's stream message data
             super.onStreamMessage(uid, streamId, data);
-            CustomUtilities.showMessage(context, "GOTYOURMESSAGE");
             int touchCount = data.length / 12;       //number of touch points from data array
             for (int k = 0; k < touchCount; k++) {
                 //get the touch point's x,y position related to the center of the screen and calculated the raw position
@@ -300,8 +299,7 @@ public class ClientActivity extends AppCompatActivity implements GLSurfaceView.R
                 float convertedX = ByteBuffer.wrap(xByte).getFloat();
                 float convertedY = ByteBuffer.wrap(yByte).getFloat();
                 float options = ByteBuffer.wrap(optionsByte).getFloat();
-                float center_X = convertedX + ((float) mWidth / 2);
-                float center_Y = convertedY + ((float) mHeight / 2);
+
 
                 int objectChoice = (int) options;
                 switch (objectChoice){
@@ -312,11 +310,8 @@ public class ClientActivity extends AppCompatActivity implements GLSurfaceView.R
                 }
                 mScaleFactor = options - objectChoice;
 
-                ArrayList arr = new ArrayList();
-                arr.add(center_X);
-                arr.add(center_Y);
+                Float arr[] = {convertedX, convertedY};
                 queuedSentTaps.offer(arr);
-
             }
         }
     };
@@ -437,9 +432,9 @@ public class ClientActivity extends AppCompatActivity implements GLSurfaceView.R
             // camera framerate.
             Frame frame = mSession.update();
             Camera camera = frame.getCamera();
-            ArrayList sentTap = queuedSentTaps.poll();
+            Float sentTap[] = queuedSentTaps.poll();
             if (sentTap != null && camera.getTrackingState() == TrackingState.TRACKING) {
-                MotionEvent tap = MotionEvent.obtain(SystemClock.uptimeMillis(), SystemClock.uptimeMillis(), MotionEvent.ACTION_DOWN, sentTap.indexOf(0), sentTap.indexOf(1), 0);
+                MotionEvent tap = MotionEvent.obtain(SystemClock.uptimeMillis(), SystemClock.uptimeMillis(), MotionEvent.ACTION_DOWN, sentTap[0], sentTap[1], 0);
                 for (HitResult hit : frame.hitTest(tap)) {
                     // Check if any plane was hit, and if it was hit inside the plane polygon
                     Trackable trackable = hit.getTrackable();
@@ -450,11 +445,10 @@ public class ClientActivity extends AppCompatActivity implements GLSurfaceView.R
                             || (trackable instanceof Point
                             && ((Point) trackable).getOrientationMode()
                             == Point.OrientationMode.ESTIMATED_SURFACE_NORMAL)) {
-                        Log.d(TAG, "onDrawFrame: INSIDE IF");
                         // Hits are sorted by depth. Consider only closest hit on a plane or oriented point.
                         // Cap the number of objects created. This avoids overloading both the
                         // rendering system and ARCore.
-                        if (virtualObjects.size() >= 250) {
+                        if (virtualObjects.size() >= 50) {
                             virtualObjects.get(0).getAnchor().detach();
                             virtualObjects.remove(0);
                         }
@@ -577,9 +571,8 @@ public class ClientActivity extends AppCompatActivity implements GLSurfaceView.R
         button.setImageResource((mHidePoint = !mHidePoint) ? R.drawable.ic_baseline_visibility_off_24 : R.drawable.ic_baseline_visibility_24);
     }
 
-    private void showPlane(Button button) {
-        button.setText((mHidePlane = !mHidePlane) ? "Show plane" :
-                "Hide plane");
+    private void showPlane(ImageButton button) {
+        button.setImageResource((mHidePlane = !mHidePlane) ? R.drawable.ic_baseline_visibility_off_24 : R.drawable.ic_baseline_visibility_24);
     }
 
     private boolean isShowPointCloud() {
