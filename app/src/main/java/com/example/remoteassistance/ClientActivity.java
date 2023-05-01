@@ -251,6 +251,7 @@ public class ClientActivity extends AppCompatActivity implements GLSurfaceView.R
             config.mAppId = CustomUtilities.appId;
             config.mEventHandler = mRtcEventHandler;
             agoraEngine = RtcEngine.create(config);
+            agoraEngine.setParameters("{\"rtc.log_filter\": 65535}");
         } catch (Exception e) {
             CustomUtilities.showMessage(context, e.toString());
         }
@@ -321,9 +322,10 @@ public class ClientActivity extends AppCompatActivity implements GLSurfaceView.R
         remoteSurfaceView = new SurfaceView(getBaseContext());
         remoteSurfaceView.setZOrderMediaOverlay(true);
         container.addView(remoteSurfaceView);
-        agoraEngine.setupRemoteVideo(new VideoCanvas(remoteSurfaceView, VideoCanvas.RENDER_MODE_FIT, uid));
+        agoraEngine.setupRemoteVideo(new VideoCanvas(remoteSurfaceView, VideoCanvas.RENDER_MODE_HIDDEN, uid));
         // Display RemoteSurfaceView.
         remoteSurfaceView.setVisibility(View.VISIBLE);
+        agoraEngine.muteRemoteVideoStream(uid, false);
     }
 
     private void setupLocalVideo() {
@@ -342,6 +344,7 @@ public class ClientActivity extends AppCompatActivity implements GLSurfaceView.R
             setupLocalVideo();
             // Start local preview.
             agoraEngine.startPreview();
+
             // Join the channel with a temp token.
             // You need to specify the user ID yourself, and ensure that it is unique in the channel.
             agoraEngine.joinChannel(token, channelName, uid, options);
@@ -349,6 +352,9 @@ public class ClientActivity extends AppCompatActivity implements GLSurfaceView.R
         } else {
             Toast.makeText(getApplicationContext(), "Permissions was not granted", Toast.LENGTH_SHORT).show();
         }
+        HandlerThread thread = new HandlerThread("ArSendThread");
+        thread.start();
+        mSenderHandler = new Handler(thread.getLooper());
     }
 
     public void leaveChannel(View view) {
@@ -406,6 +412,11 @@ public class ClientActivity extends AppCompatActivity implements GLSurfaceView.R
             Log.e(TAG, "Failed to read plane texture");
         }
         mPointCloud.createOnGlThread(/*context=*/this);
+
+        try {
+            mPeerObject.createOnGlThread(this);
+        } catch (IOException ex) {
+        }
     }
 
     @Override

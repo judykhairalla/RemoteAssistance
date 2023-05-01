@@ -7,16 +7,21 @@ import static com.example.remoteassistance.CustomUtilities.uid;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
+import android.widget.SeekBar;
 import android.widget.Toast;
 
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.google.android.material.bottomsheet.BottomSheetDialog;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -215,6 +220,72 @@ public class AssistantActivity extends AppCompatActivity {
         //get device screen size
         mWidth= this.getResources().getDisplayMetrics().widthPixels;
         mHeight= this.getResources().getDisplayMetrics().heightPixels;
+
+        // Bottom sheet
+        ImageButton openBottomSheet = findViewById(R.id.open_modal_bottom_sheet);
+        openBottomSheet.setOnClickListener(
+                new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        final BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(
+                                AssistantActivity.this);
+                        View bottomSheetView = LayoutInflater.from(getApplicationContext())
+                                .inflate(R.layout.dialogue_bottom_sheet,
+                                        (LinearLayout) findViewById(R.id.dialogue_bottom_sheet));
+
+                        bottomSheetView.findViewById(R.id.circle).setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                mObjectChoice = 0;
+                            }
+                        });
+
+                        bottomSheetView.findViewById(R.id.arrow).setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                mObjectChoice = 1;
+                            }
+                        });
+
+                        bottomSheetView.findViewById(R.id.arrow_anticlockwise).setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                mObjectChoice = 2;
+                            }
+                        });
+
+                        bottomSheetView.findViewById(R.id.arrow_clockwise).setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                mObjectChoice = 3;
+                            }
+                        });
+
+                        SeekBar seekBar=(SeekBar)bottomSheetView.findViewById(R.id.seekBar);
+                        seekBar.setProgress((int)(mScaleFactor*100));
+                        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+                            @Override
+                            public void onProgressChanged(SeekBar seekBar, int progress,
+                                                          boolean fromUser) {
+                                mScaleFactor = progress/100.0f;
+                            }
+
+                            @Override
+                            public void onStartTrackingTouch(SeekBar seekBar) {
+//                                Toast.makeText(getApplicationContext(),"seekbar touch started!", Toast.LENGTH_SHORT).show();
+                            }
+
+                            @Override
+                            public void onStopTrackingTouch(SeekBar seekBar) {
+//                                Toast.makeText(getApplicationContext(),"seekbar touch stopped!", Toast.LENGTH_SHORT).show();
+                            }
+                        });
+
+                        bottomSheetDialog.setContentView(bottomSheetView);
+                        bottomSheetDialog.show();
+                    }
+                }
+        );
     }
 
     public void initTouchListener(){
